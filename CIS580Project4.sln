@@ -6,9 +6,6 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CIS580Project4", "MonoGameCrossPlatformTemplate\CIS580Project4.csproj", "{F68B4589-3D25-4B88-8590-F1BF5691B6A3}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F3E09ECC-8F91-4DE1-B451-314B151A53E3}"
-	ProjectSection(SolutionItems) = preProject
-		Player.cs = Player.cs
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

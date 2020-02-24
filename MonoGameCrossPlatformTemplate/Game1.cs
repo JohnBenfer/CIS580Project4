@@ -2,8 +2,9 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
-namespace MonoGameCrossPlatformTemplate
+namespace CIS580Project4
 {
+
     /// <summary>
     /// This is the main type for your game.
     /// </summary>
@@ -11,11 +12,20 @@ namespace MonoGameCrossPlatformTemplate
     {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
-        
+        Player player;
+        Texture2D backgroundSky;
+        Texture2D backgroundCity;
+        double backgroundCityX = 0;
+        public int SCREEN_WIDTH = 1790;
+        public int SCREEN_HEIGHT = 1020;
+        public double ViewportX;
+        public double ViewportY;
+
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
+            graphics.GraphicsProfile = GraphicsProfile.HiDef;
         }
 
         /// <summary>
@@ -26,7 +36,14 @@ namespace MonoGameCrossPlatformTemplate
         /// </summary>
         protected override void Initialize()
         {
-            // TODO: Add your initialization logic here
+
+            graphics.PreferredBackBufferWidth = SCREEN_WIDTH;
+            graphics.PreferredBackBufferHeight = SCREEN_HEIGHT;
+            graphics.ApplyChanges();
+
+            ViewportX = 0;
+            ViewportY = 0;
+            player = new Player();
 
             base.Initialize();
         }
@@ -39,8 +56,8 @@ namespace MonoGameCrossPlatformTemplate
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
-
-            // TODO: use this.Content to load your game content here
+            backgroundSky = Content.Load<Texture2D>("BackgroundSky");
+            backgroundCity = Content.Load<Texture2D>("BackgroundCity");
         }
 
         /// <summary>
@@ -49,34 +66,30 @@ namespace MonoGameCrossPlatformTemplate
         /// </summary>
         protected override void UnloadContent()
         {
-            // TODO: Unload any non ContentManager content here
+            
         }
 
-        /// <summary>
-        /// Allows the game to run logic such as updating the world,
-        /// checking for collisions, gathering input, and playing audio.
-        /// </summary>
-        /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            // TODO: Add your update logic here
+            player.Update();
+            backgroundCityX -= 0.7;
 
             base.Update(gameTime);
         }
 
-        /// <summary>
-        /// This is called when the game should draw itself.
-        /// </summary>
-        /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
+            spriteBatch.Begin();
+            spriteBatch.Draw(backgroundSky, new Rectangle(new Point(0, 0), new Point(SCREEN_WIDTH, SCREEN_HEIGHT)), Color.White);
+            spriteBatch.Draw(backgroundCity, new Rectangle(new Point((int)ViewportX - 100, (int)ViewportY + 0 - 100), new Point(SCREEN_WIDTH + 100, SCREEN_HEIGHT + 100)), Color.White);
+            spriteBatch.Draw(backgroundCity, new Rectangle(new Point((int)ViewportX - 100 + SCREEN_WIDTH, (int)ViewportY + 0 - 100), new Point(SCREEN_WIDTH + 100, SCREEN_HEIGHT + 100)), Color.White);
+            player.Draw();
 
-            // TODO: Add your drawing code here
-
+            spriteBatch.End();
             base.Draw(gameTime);
         }
     }

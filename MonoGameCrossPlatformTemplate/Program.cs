@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MonoGameCrossPlatformTemplate
+namespace CIS580Project4
 {
     /// <summary>
     /// The main class.
