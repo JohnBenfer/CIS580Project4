@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System.Collections.Generic;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
@@ -15,14 +16,25 @@ namespace CIS580Project4
         Player player;
         Texture2D backgroundSky;
         Texture2D backgroundCity;
+        Texture2D background;
         double backgroundCityX = 0;
         public int SCREEN_WIDTH = 1790;
         public int SCREEN_HEIGHT = 1020;
+        public int GAME_WIDTH;
+        public int GAME_HEIGHT;
         public double ViewportX;
         public double ViewportY;
+        public int TILE_WIDTH;
+        public int TILE_HEIGHT;
+        List<Tile> tiles = new List<Tile>();
+        int tileCount;
 
         public Game1()
         {
+            TILE_WIDTH = SCREEN_WIDTH / 25;
+            TILE_HEIGHT = TILE_WIDTH;
+            GAME_WIDTH = SCREEN_WIDTH * 3;
+            GAME_HEIGHT = SCREEN_HEIGHT * 2;
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             graphics.GraphicsProfile = GraphicsProfile.HiDef;
@@ -36,14 +48,18 @@ namespace CIS580Project4
         /// </summary>
         protected override void Initialize()
         {
-
+            tileCount = GAME_WIDTH/TILE_WIDTH;
             graphics.PreferredBackBufferWidth = SCREEN_WIDTH;
             graphics.PreferredBackBufferHeight = SCREEN_HEIGHT;
             graphics.ApplyChanges();
 
             ViewportX = 0;
             ViewportY = 0;
-            player = new Player();
+            player = new Player(this);
+            for(int i = 0; i <= tileCount; i++)
+            {
+                tiles.Add(new Tile(this, i*TILE_WIDTH, SCREEN_HEIGHT - TILE_HEIGHT + 10));
+            }
 
             base.Initialize();
         }
@@ -58,12 +74,9 @@ namespace CIS580Project4
             spriteBatch = new SpriteBatch(GraphicsDevice);
             backgroundSky = Content.Load<Texture2D>("BackgroundSky");
             backgroundCity = Content.Load<Texture2D>("BackgroundCity");
+            background = Content.Load<Texture2D>("Background");
         }
 
-        /// <summary>
-        /// UnloadContent will be called once per game and is the place to unload
-        /// game-specific content.
-        /// </summary>
         protected override void UnloadContent()
         {
             
@@ -75,7 +88,7 @@ namespace CIS580Project4
                 Exit();
 
             player.Update();
-            backgroundCityX -= 0.7;
+            //backgroundCityX -= 0.7;
 
             base.Update(gameTime);
         }
@@ -84,10 +97,25 @@ namespace CIS580Project4
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
             spriteBatch.Begin();
+            /*
             spriteBatch.Draw(backgroundSky, new Rectangle(new Point(0, 0), new Point(SCREEN_WIDTH, SCREEN_HEIGHT)), Color.White);
             spriteBatch.Draw(backgroundCity, new Rectangle(new Point((int)ViewportX - 100, (int)ViewportY + 0 - 100), new Point(SCREEN_WIDTH + 100, SCREEN_HEIGHT + 100)), Color.White);
             spriteBatch.Draw(backgroundCity, new Rectangle(new Point((int)ViewportX - 100 + SCREEN_WIDTH, (int)ViewportY + 0 - 100), new Point(SCREEN_WIDTH + 100, SCREEN_HEIGHT + 100)), Color.White);
-            player.Draw();
+            */
+            for (int i = 0; i < (GAME_WIDTH/SCREEN_WIDTH); i++)
+            {
+                //spriteBatch.Draw(background, new Rectangle(new Point((int)ViewportX + (i*SCREEN_WIDTH), (int)ViewportY), new Point(SCREEN_WIDTH, SCREEN_HEIGHT)), Color.White);
+                for (int j = 0; j < (GAME_HEIGHT / SCREEN_HEIGHT); j++)
+                {
+                    spriteBatch.Draw(background, new Rectangle(new Point((int)ViewportX + (i * SCREEN_WIDTH), (int)ViewportY + (j*SCREEN_HEIGHT)), new Point(SCREEN_WIDTH, SCREEN_HEIGHT)), Color.White);
+                }
+            }
+            
+            player.Draw(spriteBatch);
+            foreach(Tile t in tiles)
+            {
+                t.Draw(spriteBatch, ViewportX, ViewportY);
+            }
 
             spriteBatch.End();
             base.Draw(gameTime);
