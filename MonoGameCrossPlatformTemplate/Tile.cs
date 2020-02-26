@@ -14,6 +14,7 @@ namespace CIS580Project4
         int width;
         int height;
         Vector2 origin;
+        public Hitbox hitbox;
 
         public Tile(Game1 game, double X, double Y)
         {
@@ -25,6 +26,7 @@ namespace CIS580Project4
             width = game.TILE_WIDTH;
             height = game.TILE_HEIGHT;
             origin = new Vector2(width / 2, height / 2);
+            hitbox = new Hitbox(height, width, (int)X, (int)Y);
 
         }
 

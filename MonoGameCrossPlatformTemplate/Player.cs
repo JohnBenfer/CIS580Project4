@@ -40,10 +40,10 @@ namespace CIS580Project4
         public Hitbox hitbox;
         
         bool moving;
-        double playerSpeedX;
-        double playerSpeedY;
+        public double playerSpeedX;
+        public double playerSpeedY;
         PlayerState action;
-        PlayerLocation location;
+        public PlayerLocation location;
         PlayerDirection direction;
         double MAX_JUMP_HEIGHT;
         double MAX_X_SPEED;
@@ -63,19 +63,20 @@ namespace CIS580Project4
             LoadContent();
             currentTexture = standingRight;
             direction = PlayerDirection.Right;
+            action = PlayerState.Standing;
             MAX_JUMP_HEIGHT = 100;
             MAX_X_SPEED = 14;
             MAX_Y_SPEED = 20;
             playerSpeedX = 0;
             playerSpeedY = 0;
             playerAccelerationX = 1;
-            playerAccelerationY = 5;
+            playerAccelerationY = 0.8;
             moving = false;
             
             width = 200;
             height = 250;
             X = game.SCREEN_WIDTH / 2;
-            Y = game.SCREEN_HEIGHT - game.TILE_HEIGHT - (height/2) + 10;
+            Y = game.SCREEN_HEIGHT - game.TILE_HEIGHT - (height/2) - 300;
             origin = new Vector2(standingRight.Width / 2, standingRight.Height / 2);
             hitbox = new Hitbox(width, height, (int)X, (int)Y);
 
@@ -88,11 +89,8 @@ namespace CIS580Project4
             switch (action)
 			{
                 case PlayerState.Jumping:
-					
-                    if(location.Equals(PlayerLocation.Ground))
-                    {
-                        Jump();
-                    }
+                    playerSpeedY -= playerAccelerationY;
+                    
                     break;
                 case PlayerState.Crouching:
 
@@ -102,12 +100,22 @@ namespace CIS580Project4
                 
 			} // end of state switch
 
-
+            if(location == PlayerLocation.Ground)
+            {
+                action = PlayerState.Standing;
+            }
             
 
             if(keyboard.IsKeyDown(Keys.W))
             {
                 moving = true;
+                if(location == PlayerLocation.Ground && action != PlayerState.Jumping)
+                {
+                    playerSpeedY = 5;
+                }
+
+                action = PlayerState.Jumping;
+                location = PlayerLocation.Air;
             }
             if(keyboard.IsKeyDown(Keys.D))
             {
@@ -133,6 +141,11 @@ namespace CIS580Project4
                 Shoot();
             }
 
+            
+            Y -= playerSpeedY;
+            game.ViewportY += playerSpeedY;
+
+            hitbox.Move((int)X, (int)Y);
 
         } // end of update method
 
@@ -160,7 +173,7 @@ namespace CIS580Project4
                 }
 
             }
-            
+            X += playerSpeedX;
             game.ViewportX -= playerSpeedX;
         }
 
@@ -177,14 +190,10 @@ namespace CIS580Project4
                     playerSpeedX -= playerAccelerationX;
                 }
             }
-            //X += playerSpeedX;
+            X += playerSpeedX;
             game.ViewportX -= playerSpeedX;
         }
 
-        private void Jump()
-        {
-
-        }
 
         public void LoadContent()
 		{

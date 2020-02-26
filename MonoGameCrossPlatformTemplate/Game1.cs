@@ -3,6 +3,8 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
+using System;
+
 namespace CIS580Project4
 {
 
@@ -19,7 +21,8 @@ namespace CIS580Project4
         Texture2D background;
         double backgroundCityX = 0;
         public int SCREEN_WIDTH = 1790;
-        public int SCREEN_HEIGHT = 1020;
+        //public int SCREEN_HEIGHT = 1020;
+        public int SCREEN_HEIGHT = 800;
         public int GAME_WIDTH;
         public int GAME_HEIGHT;
         public double ViewportX;
@@ -28,7 +31,8 @@ namespace CIS580Project4
         public int TILE_HEIGHT;
         List<Tile> tiles = new List<Tile>();
         int tileCount;
-
+        Matrix transformMatrix;
+        
         public Game1()
         {
             TILE_WIDTH = SCREEN_WIDTH / 25;
@@ -38,6 +42,7 @@ namespace CIS580Project4
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             graphics.GraphicsProfile = GraphicsProfile.HiDef;
+            
         }
 
         /// <summary>
@@ -52,7 +57,8 @@ namespace CIS580Project4
             graphics.PreferredBackBufferWidth = SCREEN_WIDTH;
             graphics.PreferredBackBufferHeight = SCREEN_HEIGHT;
             graphics.ApplyChanges();
-
+            transformMatrix = new Matrix();
+            
             ViewportX = 0;
             ViewportY = 0;
             player = new Player(this);
@@ -60,6 +66,8 @@ namespace CIS580Project4
             {
                 tiles.Add(new Tile(this, i*TILE_WIDTH, SCREEN_HEIGHT - TILE_HEIGHT + 10));
             }
+            tiles.Add(new Tile(this, 0, SCREEN_HEIGHT - (TILE_HEIGHT * 2) + 10));
+            tiles.Add(new Tile(this, tileCount * TILE_WIDTH, SCREEN_HEIGHT - (TILE_HEIGHT * 2) + 10));
 
             base.Initialize();
         }
@@ -88,7 +96,30 @@ namespace CIS580Project4
                 Exit();
 
             player.Update();
-            //backgroundCityX -= 0.7;
+
+
+            foreach (Tile tile in tiles)
+            {
+                if(PlayerHittingTopOfTile(tile))
+                {
+                    player.playerSpeedY = 0;
+                    player.location = PlayerLocation.Ground;
+                    Console.WriteLine("Here");
+                }
+                if(PlayerHittingBottomOfTile(tile))
+                {
+                    player.playerSpeedY = 0;
+                }
+                if(PlayerHittingSideOfTile(tile))
+                {
+                    player.playerSpeedX = 0;
+                }
+            }
+
+
+
+            // translates the view matrix
+            transformMatrix = Matrix.CreateTranslation(new Vector3((float)ViewportX, (float)ViewportY, 0));
 
             base.Update(gameTime);
         }
@@ -96,7 +127,7 @@ namespace CIS580Project4
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
-            spriteBatch.Begin();
+            spriteBatch.Begin(SpriteSortMode.Deferred, null, null, null, null, null, transformMatrix);
             /*
             spriteBatch.Draw(backgroundSky, new Rectangle(new Point(0, 0), new Point(SCREEN_WIDTH, SCREEN_HEIGHT)), Color.White);
             spriteBatch.Draw(backgroundCity, new Rectangle(new Point((int)ViewportX - 100, (int)ViewportY + 0 - 100), new Point(SCREEN_WIDTH + 100, SCREEN_HEIGHT + 100)), Color.White);
@@ -107,18 +138,67 @@ namespace CIS580Project4
                 //spriteBatch.Draw(background, new Rectangle(new Point((int)ViewportX + (i*SCREEN_WIDTH), (int)ViewportY), new Point(SCREEN_WIDTH, SCREEN_HEIGHT)), Color.White);
                 for (int j = 0; j < (GAME_HEIGHT / SCREEN_HEIGHT); j++)
                 {
-                    spriteBatch.Draw(background, new Rectangle(new Point((int)ViewportX + (i * SCREEN_WIDTH), (int)ViewportY + (j*SCREEN_HEIGHT)), new Point(SCREEN_WIDTH, SCREEN_HEIGHT)), Color.White);
+                    //spriteBatch.Draw(background, new Rectangle(new Point((int)ViewportX + (i * SCREEN_WIDTH), (int)ViewportY + (j*SCREEN_HEIGHT)), new Point(SCREEN_WIDTH, SCREEN_HEIGHT)), Color.White);
+                    spriteBatch.Draw(background, new Rectangle(new Point((int)0 + (i * SCREEN_WIDTH), (int)0 + (j * SCREEN_HEIGHT)), new Point(SCREEN_WIDTH, SCREEN_HEIGHT)), Color.White);
                 }
             }
             
             player.Draw(spriteBatch);
             foreach(Tile t in tiles)
             {
-                t.Draw(spriteBatch, ViewportX, ViewportY);
+                t.Draw(spriteBatch, 0, 0);
             }
 
             spriteBatch.End();
             base.Draw(gameTime);
         }
+
+
+        private bool PlayerHittingTopOfTile(Tile tile)
+        {
+            if((player.hitbox.box.Y + player.hitbox.box.Height >= tile.hitbox.box.Y &&
+                player.hitbox.box.Y + player.hitbox.box.Height < tile.hitbox.box.Y + tile.hitbox.box.Height) &&
+                (player.hitbox.box.X < tile.hitbox.box.X + tile.hitbox.box.Width && player.hitbox.box.X > tile.hitbox.box.X) ||  // player left is to the left of tile right and right of tile left
+                (player.hitbox.box.X + player.hitbox.box.Width > tile.hitbox.box.X && player.hitbox.box.X + player.hitbox.box.Width < tile.hitbox.box.X + tile.hitbox.box.Width))
+            {
+                return true;
+            }
+            return false;
+        }
+
+        private bool PlayerHittingBottomOfTile(Tile tile)
+        {
+            if ((player.hitbox.box.Y <= tile.hitbox.box.Y + tile.hitbox.box.Height && // player top is above tile bottom
+                player.hitbox.box.Y + player.hitbox.box.Height > tile.hitbox.box.Y + tile.hitbox.box.Height) && // player bottom is below tile bottom
+                (player.hitbox.box.X < tile.hitbox.box.X + tile.hitbox.box.Width && player.hitbox.box.X > tile.hitbox.box.X) ||  // player left is to the left of tile right and right of tile left
+                (player.hitbox.box.X + player.hitbox.box.Width > tile.hitbox.box.X && player.hitbox.box.X + player.hitbox.box.Width < tile.hitbox.box.X + tile.hitbox.box.Width)) // player right is right of tile left and left of tile right
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool PlayerHittingSideOfTile(Tile tile)
+        {
+            if((player.hitbox.box.X + player.hitbox.box.Width > tile.hitbox.box.X &&
+                player.hitbox.box.X < tile.hitbox.box.X) &&
+                (player.hitbox.box.Y > tile.hitbox.box.Y && player.hitbox.box.Y < tile.hitbox.box.Y + tile.hitbox.box.Height ||
+                player.hitbox.box.Y + player.hitbox.box.Height < tile.hitbox.box.Y + tile.hitbox.box.Height && player.hitbox.box.Y + player.hitbox.box.Height > tile.hitbox.box.Y))
+            {
+                return true; // player hitting left side of tile
+            }
+
+            if ((player.hitbox.box.X + player.hitbox.box.Width > tile.hitbox.box.X + tile.hitbox.box.Width &&
+                player.hitbox.box.X < tile.hitbox.box.X + tile.hitbox.box.Width) &&
+                (player.hitbox.box.Y > tile.hitbox.box.Y && player.hitbox.box.Y < tile.hitbox.box.Y + tile.hitbox.box.Height ||
+                player.hitbox.box.Y + player.hitbox.box.Height < tile.hitbox.box.Y + tile.hitbox.box.Height && player.hitbox.box.Y + player.hitbox.box.Height > tile.hitbox.box.Y))
+            {
+                return true; // player hitting right side of tile
+            }
+
+            return false;
+        }
+
     }
 }
